@@ -7,7 +7,6 @@
 
 import SwiftUI
 import WebKit
-import QuartzCore
 
 struct ContentView: View {
     @State private var urlString: String = "apple.com"
@@ -66,13 +65,6 @@ struct ContentView: View {
         window.isOpaque = false
         window.backgroundColor = .clear
         window.isMovableByWindowBackground = true
-        window.styleMask.remove(.titled)
-        window.styleMask.insert(.borderless)
-        DispatchQueue.main.async {
-            window.contentView?.wantsLayer = true
-            window.contentView?.layer?.cornerRadius = 12.0
-            window.contentView?.layer?.masksToBounds = true
-        }
     }
 }
 

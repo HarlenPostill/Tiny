@@ -14,6 +14,5 @@ struct TinyApp: App {
             ContentView()
                 .background(.thinMaterial)
         }
-        .windowStyle(.hiddenTitleBar)
     }
 }

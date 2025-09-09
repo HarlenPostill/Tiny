@@ -7,17 +7,13 @@
 
 import SwiftUI
 import WebKit
-
-// MARK: - Main View
+import QuartzCore
 
 struct ContentView: View {
-    @State private var urlString: String = "hrln-interactive.com"
+    @State private var urlString: String = "apple.com"
     @State private var currentURL: URL?
     @State private var webViewProxy = WebViewProxy()
     
-    // Keep track of the drag gesture to move the window
-    @State private var dragGestureTranslation: CGSize = .zero
-
     var body: some View {
         VStack(spacing: 0) {
             addressBar
@@ -29,30 +25,13 @@ struct ContentView: View {
         .padding(.horizontal, 8)
         .padding(.bottom, 8)
         .background(Color.clear)
-        .frame(minWidth: 450, idealWidth: 600, maxWidth: .infinity, minHeight: 300, idealHeight: 800, maxHeight: .infinity)
+        .frame(minWidth: 450, idealWidth: 500, maxWidth: .infinity, minHeight: 300, idealHeight: 800, maxHeight: .infinity)
         .onAppear(perform: setupWindow)
         .onAppear {
             loadURL()
         }
-        .gesture(
-            DragGesture().onChanged { value in
-                // This gesture allows the window to be dragged from anywhere.
-                if let window = NSApplication.shared.windows.first {
-                    // A new drag gesture has a zero translation. A continuing one will not.
-                    // This check prevents the window from jumping to the gesture's start point.
-                    if self.dragGestureTranslation == .zero {
-                        window.performDrag(with: NSApplication.shared.currentEvent!)
-                    }
-                    self.dragGestureTranslation = value.translation
-                }
-            }.onEnded { _ in
-                // Reset the translation when the gesture ends.
-                self.dragGestureTranslation = .zero
-            }
-        )
     }
 
-    /// The address bar view, no longer floating.
     private var addressBar: some View {
         HStack(spacing: 0) {
             TextField("Search or enter website name", text: $urlString, onCommit: loadURL)
@@ -69,10 +48,8 @@ struct ContentView: View {
                 .stroke(Color.gray.opacity(0.2), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.15), radius: 8, y: 5)
-        .frame(width: .infinity)
     }
 
-    /// Parses the URL string and updates the `currentURL` state.
     private func loadURL() {
         var urlToLoad = urlString.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if !urlToLoad.hasPrefix("https://") && !urlToLoad.hasPrefix("http://") {
@@ -84,15 +61,18 @@ struct ContentView: View {
         }
     }
     
-    /// Configures the application window to be transparent and borderless.
     private func setupWindow() {
         guard let window = NSApplication.shared.windows.first else { return }
         window.isOpaque = false
         window.backgroundColor = .clear
-        window.titlebarAppearsTransparent = true
-        window.standardWindowButton(.closeButton)?.isHidden = true
-        window.standardWindowButton(.miniaturizeButton)?.isHidden = true
-        window.standardWindowButton(.zoomButton)?.isHidden = true
+        window.isMovableByWindowBackground = true
+        window.styleMask.remove(.titled)
+        window.styleMask.insert(.borderless)
+        DispatchQueue.main.async {
+            window.contentView?.wantsLayer = true
+            window.contentView?.layer?.cornerRadius = 12.0
+            window.contentView?.layer?.masksToBounds = true
+        }
     }
 }
 
@@ -103,7 +83,7 @@ struct WebViewProxy {
     var reload: () -> Void = {}
 }
 
-/// A SwiftUI wrapper for `WKWebView`.
+/// Wrapper for `WKWebView`.
 struct WebView: NSViewRepresentable {
     @Binding var url: URL?
     @Binding var proxy: WebViewProxy
@@ -112,7 +92,6 @@ struct WebView: NSViewRepresentable {
         let webView = WKWebView()
         webView.navigationDelegate = context.coordinator
         
-        // Link the proxy actions to the webView instance.
         self.proxy.reload = { webView.reload() }
         
         return webView

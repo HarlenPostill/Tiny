@@ -79,7 +79,7 @@ struct ContentView: View {
         let searchIndicators = ["what", "how", "why", "when", "where", "who", "?"]
         for indicator in searchIndicators {
             if lowercased.contains(indicator) { return false }
-        }        
+        }
         let tldPattern = #"\.[a-zA-Z]{2,6}(/.*)?$"#
         let regex = try? NSRegularExpression(pattern: tldPattern)
         let range = NSRange(location: 0, length: input.count)
@@ -112,6 +112,10 @@ struct ContentView: View {
 /// A proxy to communicate with the underlying `WKWebView`.
 struct WebViewProxy {
     var reload: () -> Void = {}
+    var goBack: () -> Void = {}
+    var goForward: () -> Void = {}
+    var canGoBack: () -> Bool = { false }
+    var canGoForward: () -> Bool = { false }
 }
 
 /// Wrapper for `WKWebView`.
@@ -122,8 +126,15 @@ struct WebView: NSViewRepresentable {
     func makeNSView(context: Context) -> WKWebView {
         let webView = WKWebView()
         webView.navigationDelegate = context.coordinator
+        webView.allowsBackForwardNavigationGestures = true
         
-        self.proxy.reload = { webView.reload() }
+        proxy = WebViewProxy(
+            reload: { webView.reload() },
+            goBack: { _ = webView.goBack() },
+            goForward: { _ = webView.goForward() },
+            canGoBack: { webView.canGoBack },
+            canGoForward: { webView.canGoForward }
+        )
         
         return webView
     }

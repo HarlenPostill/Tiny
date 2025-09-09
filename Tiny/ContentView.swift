@@ -50,14 +50,53 @@ struct ContentView: View {
     }
 
     private func loadURL() {
-        var urlToLoad = urlString.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if !urlToLoad.hasPrefix("https://") && !urlToLoad.hasPrefix("http://") {
-            urlToLoad = "https://" + urlToLoad
-        }
+        let input = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        if let url = URL(string: urlToLoad) {
+        if let url = createURL(from: input) {
             currentURL = url
         }
+    }
+    
+    private func createURL(from input: String) -> URL? {
+        let trimmedInput = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        if trimmedInput.hasPrefix("https://") || trimmedInput.hasPrefix("http://") {
+            return URL(string: trimmedInput)
+        }
+        
+        if isDomainLike(trimmedInput) {
+            let urlString = "https://" + trimmedInput
+            return URL(string: urlString)
+        }
+        
+        return createGoogleSearchURL(for: trimmedInput)
+    }
+    
+    private func isDomainLike(_ input: String) -> Bool {
+        let lowercased = input.lowercased()
+        guard lowercased.contains(".") else { return false }
+        guard !lowercased.contains(" ") else { return false }        
+        let searchIndicators = ["what", "how", "why", "when", "where", "who", "?"]
+        for indicator in searchIndicators {
+            if lowercased.contains(indicator) { return false }
+        }        
+        let tldPattern = #"\.[a-zA-Z]{2,6}(/.*)?$"#
+        let regex = try? NSRegularExpression(pattern: tldPattern)
+        let range = NSRange(location: 0, length: input.count)
+        let hasValidTLD = regex?.firstMatch(in: input, options: [], range: range) != nil
+        
+        return hasValidTLD
+    }
+    
+    private func createGoogleSearchURL(for query: String) -> URL? {
+        guard !query.isEmpty else { return nil }
+        
+        guard let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            return nil
+        }
+        
+        let googleSearchURL = "https://www.google.com/search?q=\(encodedQuery)"
+        return URL(string: googleSearchURL)
     }
     
     private func setupWindow() {
@@ -108,10 +147,4 @@ struct WebView: NSViewRepresentable {
             self.parent = parent
         }
     }
-}
-
-// MARK: - Preview
-
-#Preview {
-    ContentView()
 }

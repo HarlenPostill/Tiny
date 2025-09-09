@@ -19,20 +19,19 @@ struct ContentView: View {
     @State private var dragGestureTranslation: CGSize = .zero
 
     var body: some View {
-        ZStack {
-            // The WebView is the main content layer, clipped to a rounded rectangle.
+        VStack(spacing: 0) {
+            addressBar
+                .padding(.top, 12)
+                .padding(.bottom, 12)
             WebView(url: $currentURL, proxy: $webViewProxy)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .padding(8) // Padding to create the see-through border effect
-
-            // The address bar floats on top of the WebView.
-            addressBar
         }
+        .padding(.horizontal, 8)
+        .padding(.bottom, 8)
         .background(Color.clear)
         .frame(minWidth: 450, idealWidth: 600, maxWidth: .infinity, minHeight: 300, idealHeight: 800, maxHeight: .infinity)
         .onAppear(perform: setupWindow)
         .onAppear {
-             // Load initial URL when the view appears.
             loadURL()
         }
         .gesture(
@@ -53,29 +52,24 @@ struct ContentView: View {
         )
     }
 
-    /// The floating address bar view.
+    /// The address bar view, no longer floating.
     private var addressBar: some View {
-        VStack {
-            HStack(spacing: 0) {
-                TextField("Search or enter website name", text: $urlString, onCommit: loadURL)
-                    .textFieldStyle(.plain)
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 12)
-            }
-            .background(
-                Capsule(style: .continuous)
-                    .fill(.regularMaterial)
-            )
-            .overlay(
-                Capsule(style: .continuous)
-                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-            )
-            .shadow(color: .black.opacity(0.15), radius: 8, y: 5)
-            .frame(width: 450)
-            .padding(.top, 24)
-
-            Spacer()
+        HStack(spacing: 0) {
+            TextField("Search or enter website name", text: $urlString, onCommit: loadURL)
+                .textFieldStyle(.plain)
+                .padding(.vertical, 10)
+                .padding(.horizontal, 12)
         }
+        .background(
+            Capsule(style: .continuous)
+                .fill(.regularMaterial)
+        )
+        .overlay(
+            Capsule(style: .continuous)
+                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.15), radius: 8, y: 5)
+        .frame(width: .infinity)
     }
 
     /// Parses the URL string and updates the `currentURL` state.

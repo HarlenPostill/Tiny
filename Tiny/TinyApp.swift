@@ -12,7 +12,9 @@ struct TinyApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .background(.thinMaterial)
+                .background(.ultraThinMaterial)
+                .tabViewCustomization(.none)
+                .navigationTitle("Tiny")
         }
         .windowStyle(.hiddenTitleBar)
     }

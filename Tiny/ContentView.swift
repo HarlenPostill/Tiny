@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var urlString: String = "apple.com"
     @State private var currentURL: URL?
     @State private var webViewProxy = WebViewProxy()
+    @FocusState private var isAddressBarFocused: Bool
     
     var body: some View {
         VStack(spacing: 0) {
@@ -29,6 +30,13 @@ struct ContentView: View {
         .onAppear {
             loadURL()
         }
+        .background(
+            Button("") {
+                focusAndSelectAddressBar()
+            }
+            .keyboardShortcut("t", modifiers: .command)
+            .opacity(0)
+        )
     }
 
     private var addressBar: some View {
@@ -37,6 +45,7 @@ struct ContentView: View {
                 .textFieldStyle(.plain)
                 .padding(.vertical, 10)
                 .padding(.horizontal, 12)
+                .focused($isAddressBarFocused)
         }
         .background(
             Capsule(style: .continuous)
@@ -47,6 +56,20 @@ struct ContentView: View {
                 .stroke(Color.gray.opacity(0.2), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.15), radius: 8, y: 5)
+    }
+    
+    private func focusAndSelectAddressBar() {
+        isAddressBarFocused = true
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            if let window = NSApplication.shared.keyWindow {
+                if let firstResponder = window.firstResponder as? NSTextView {
+                    firstResponder.selectAll(nil)
+                } else if let textField = window.firstResponder as? NSTextField {
+                    textField.selectText(nil)
+                }
+            }
+        }
     }
 
     private func loadURL() {
@@ -75,7 +98,7 @@ struct ContentView: View {
     private func isDomainLike(_ input: String) -> Bool {
         let lowercased = input.lowercased()
         guard lowercased.contains(".") else { return false }
-        guard !lowercased.contains(" ") else { return false }        
+        guard !lowercased.contains(" ") else { return false }
         let searchIndicators = ["what", "how", "why", "when", "where", "who", "?"]
         for indicator in searchIndicators {
             if lowercased.contains(indicator) { return false }

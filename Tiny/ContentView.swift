@@ -53,9 +53,19 @@ struct ContentView: View {
         )
         .overlay(
             Capsule(style: .continuous)
-                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                .stroke(isAddressBarFocused ? Color.blue : Color.gray.opacity(0.2), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.15), radius: 8, y: 5)
+        .onHover { isHovered in
+            if isHovered && !isAddressBarFocused {
+                NSCursor.pointingHand.set()
+            } else if !isAddressBarFocused {
+                NSCursor.arrow.set()
+            }
+        }
+        .onTapGesture {
+            focusAndSelectAddressBar()
+        }
     }
     
     private func focusAndSelectAddressBar() {

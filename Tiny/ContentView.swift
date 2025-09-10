@@ -9,7 +9,7 @@ import SwiftUI
 import WebKit
 
 struct ContentView: View {
-    @State private var urlString: String = "apple.com"
+    @State private var urlString: String = "https://hrln-interactive.vercel.app/tiny-guide"
     @State private var currentURL: URL?
     @State private var webViewProxy = WebViewProxy()
     @FocusState private var isAddressBarFocused: Bool
